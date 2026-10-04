@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-pt"><head><meta charset="utf-8">
+<html lang="pt"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>FM Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -44,18 +44,23 @@ td small{display:block;color:var(--mut)}.ob{max-width:220px;color:var(--mut)}
 .ov{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
 .md{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:560px;max-height:90vh;overflow:auto}
 .fg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.fg .w{grid-column:1/-1}
-label{
-  font-size:12px;color:var(--mut)}label input,label select,label textarea{margin-top:3px;font-size:14px}
+label{font-size:12px;color:var(--mut)}label input,label select,label textarea{margin-top:3px;font-size:14px}
 .bt{display:flex;justify-content:flex-end;gap:8px}
 .gl{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}.gl input{width:auto}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:640px){.two{grid-template-columns:1fr}}
 .pl{fill:none;stroke:var(--acc);stroke-width:2.5}.ln0{stroke:var(--line)}.tx{fill:var(--mut);font-size:10px}.fa{fill:var(--acc)}.fb{fill:var(--bad)}.sc2{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:16px}
 .stk{display:flex;height:28px;border-radius:8px;overflow:hidden;color:#fff;font-weight:700;font-size:12px;margin-bottom:16px}.stk div{display:flex;align-items:center;justify-content:center}
+.fb{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;align-items:center}.fb input{flex:2;min-width:180px}.fb select{flex:1;min-width:130px;width:auto}
+.ck{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink)}.ck input{width:auto;margin:0;min-width:0;flex:none}
+.bd2{display:inline-block;padding:2px 8px;border-radius:99px;color:#fff;font-size:11px;font-weight:600;white-space:nowrap}
+.wn{color:#d9a21b;font-weight:700}.bn{margin:0 16px 8px;padding:9px 12px;border-radius:10px;background:#d9a21b22;border:1px solid #d9a21b;cursor:pointer}
+th[data-act]{cursor:pointer}
 </style></head><body><div id="app"></div>
 <script>
 const K='fm_v1';let S;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
 S=S&&S.clubs?S:{clubs:[],active:null};
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+let lastJ='';
+const save=()=>{const j=JSON.stringify({...S,t:0});if(j===lastJ)return;lastJ=j;S.t=Date.now();try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}cloudPush()};
 const uid=()=>Math.random().toString(36).slice(2,9),$=s=>document.querySelector(s);
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const eur=n=>(n<0?'-':'')+'€'+Math.abs(+n||0).toLocaleString('pt-PT');
@@ -67,7 +72,8 @@ const TPL={
 '3-5-2':'GR:50:90,DC:22:72,DC:50:76,DC:78:72,ME:10:48,MC:30:52,MDC:50:58,MC:70:52,MD:90:48,PL:36:20,PL:64:20',
 '4-2-3-1':'GR:50:90,DE:14:70,DC:38:74,DC:62:74,DD:86:70,MDC:36:56,MDC:64:56,EE:16:34,MOC:50:36,ED:84:34,PL:50:14'};
 const TABS=[['players','Jogadores'],['forms','Formações'],['scout','Scouting'],['staff','Staff'],['fin','Financeiro'],['matches','Jogos'],['stats','Gráficos'],['pers','Pessoal']];
-const PF=[['name','Nome','text',1],['pos','Posição','sel',0,POS],['age','Idade','number'],['ovr','Atual','number'],['pot','Potencial','number'],['nat','Nacionalidade','text'],['wage','Salário/semana (€)','number'],['exp','Fim do contrato','text'],['val','Valor (€)','number'],['clause','Cláusula (€)','number'],['notes','Observações / notas','area',1]];
+const ST=['Titular','Rotação','À venda','Emprestado','Lesionado'];
+const PF=[['name','Nome','text',1],['pos','Posição','sel',0,POS],['age','Idade','number'],['ovr','Atual','number'],['pot','Potencial','number'],['nat','Nacionalidade','text'],['wage','Salário/semana (€)','number'],['exp','Fim do contrato','text'],['val','Valor (€)','number'],['clause','Cláusula (€)','number'],['st','Estado','sel',0,ST],['notes','Observações / notas','area',1]];
 const FF=[['date','Data','date'],['type','Tipo','sel',0,['Receita','Despesa']],['cat','Categoria','sel',0,['Transferências','Salários','Bilheteira','Patrocínios','Prémios','Infraestruturas','Outros']],['amt','Valor (€)','number'],['desc','Descrição','text',1]];
 const MF=[['date','Data','date'],['comp','Competição','text'],['opp','Adversário','text',1],['ha','Local','sel',0,['Casa','Fora','Neutro']],['gf','Golos marcados','number'],['ga','Golos sofridos','number'],['notes','Notas','area',1]];
 const SC=[['name','Nome','text',1],['pos','Posição','sel',0,POS],['age','Idade','number'],['ovr','Atual','number'],['pot','Potencial','number'],['club','Clube atual','text'],['nat','Nacionalidade','text'],['val','Valor (€)','number'],['wage','Salário/semana (€)','number'],['prio','Prioridade','sel',0,['Alta','Média','Baixa']],['st','Estado','sel',0,['Observar','Contactar','Negociar','Contratado','Descartado']],['notes','Notas do olheiro','area',1]];
@@ -76,7 +82,7 @@ const bars=(D,cls=['fa'],h=140)=>{const g=cls.length*14+12,W=Math.max(300,D.leng
 return `<div class="sc2"><svg viewBox="0 0 ${W} ${h+30}" width="${W}" height="${h+30}">${D.map((d,i)=>d.v.map((v,j)=>{const bh=v/m*h,x=i*g+5+j*14;return `<rect class="${cls[j]}" x="${x}" y="${h-bh+8}" width="12" height="${bh}" rx="3"/><text class="tx" x="${x+6}" y="${h-bh+5}" text-anchor="middle">${v}</text>`}).join('')+`<text class="tx" x="${i*g+g/2-2}" y="${h+24}" text-anchor="middle">${E(d.l)}</text>`).join('')}</svg></div>`};
 const line=(P,h=140)=>{if(P.length<2)return '<p class="em">Dados insuficientes</p>';const W=Math.max(320,P.length*40),mn=Math.min(0,...P.map(p=>p.v)),mx=Math.max(0,...P.map(p=>p.v)),r=(mx-mn)||1,X=i=>20+i*(W-40)/(P.length-1),Y=v=>10+(mx-v)/r*h;
 return `<div class="sc2"><svg viewBox="0 0 ${W} ${h+30}" width="${W}" height="${h+30}"><line class="ln0" x1="0" x2="${W}" y1="${Y(0)}" y2="${Y(0)}"/><polyline class="pl" points="${P.map((p,i)=>X(i)+','+Y(p.v)).join(' ')}"/>${P.map((p,i)=>`<circle class="fa" cx="${X(i)}" cy="${Y(p.v)}" r="3.5"/>`).join('')}<text class="tx" x="2" y="${h+26}">${E(P[0].l)}</text><text class="tx" x="${W-2}" y="${h+26}" text-anchor="end">${E(P[P.length-1].l)} · ${eur(P[P.length-1].v)}</text></svg></div>`};
-const FL={scout:['alvo',SC,{pos:'MC',prio:'Média',st:'Observar'}],staff:['membro do staff',STF,{role:'Adjunto'}],players:['jogador',PF,{pos:'MC'}],fin:['movimento',FF,{type:'Despesa',cat:'Outros',date:today}],matches:['jogo',MF,{ha:'Casa',gf:0,ga:0,date:today}]};
+const FL={scout:['alvo',SC,{pos:'MC',prio:'Média',st:'Observar'}],staff:['membro do staff',STF,{role:'Adjunto'}],players:['jogador',PF,{pos:'MC',st:'Rotação'}],fin:['movimento',FF,{type:'Despesa',cat:'Outros',date:today}],matches:['jogo',MF,{ha:'Casa',gf:0,ga:0,date:today}]};
 let tab='players';
 const club=()=>{const c=S.clubs.find(c=>c.id===S.active);if(c){c.scout=c.scout||[];c.staff=c.staff||[]}return c};
 const res=m=>+m.gf>+m.ga?'V':+m.gf==+m.ga?'E':'D';
@@ -107,8 +113,8 @@ return `<div class="tl"><h2>Financeiro</h2><button class="p" data-act="add" data
 matches:c=>{const M=c.matches,n=r=>M.filter(m=>res(m)==r).length,gf=M.reduce((s,m)=>s+(+m.gf||0),0),ga=M.reduce((s,m)=>s+(+m.ga||0),0),L=[...M].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 return `<div class="tl"><h2>Jogos (${M.length})</h2><button class="p" data-act="add" data-k="matches">+ Jogo</button></div><div class="cards"><div class="cd"><span>Vitórias</span><b class="pos">${n('V')}</b></div><div class="cd"><span>Empates</span><b>${n('E')}</b></div><div class="cd"><span>Derrotas</span><b class="neg">${n('D')}</b></div><div class="cd"><span>Golos M–S</span><b>${gf}–${ga}</b></div><div class="cd"><span>% vitórias</span><b>${M.length?Math.round(n('V')/M.length*100):0}%</b></div><div class="cd"><span>Últimos 5</span><div>${L.slice(0,5).map(m=>`<span class="bd ${res(m)}">${res(m)}</span>`).join('')||'—'}</div></div></div>
 <div class="sc"><table><tr><th>Data<th>Competição<th>Jogo<th>Res<th>Notas<th></tr>${L.map(m=>{const h=m.ha!='Fora',s=`${c.name} ${m.gf}–${m.ga} ${E(m.opp)}`,a=`${E(m.opp)} ${m.ga}–${m.gf} ${c.name}`;return `<tr><td>${E(m.date)}<td>${E(m.comp)}<td>${h?s:a}<small>${m.ha}</small><td><span class="bd ${res(m)}">${res(m)}</span><td class="ob">${E(m.notes)}<td class="ac"><button data-act="edit" data-k="matches" data-i="${m.id}">✎</button><button data-act="del" data-k="matches" data-i="${m.id}">✕</button></tr>`}).join('')||'<tr><td colspan="6" class="em">Sem jogos registados</td></tr>'}</table></div>`},
-scout:c=>{const O={Alta:0,'Média':1,Baixa:2},L=[...c.scout].sort((a,b)=>O[a.prio]-O[b.prio]);
-return `<div class="tl"><h2>Scouting (${L.length})</h2><button class="p" data-act="add" data-k="scout">+ Alvo</button></div><div class="sc"><table><tr><th>Nome<th>Pos<th>Idade<th>Atual/Pot<th>Valor / Salário<th>Prioridade<th>Estado<th>Notas<th></tr>${L.map(s=>`<tr><td><b>${E(s.name)}</b><small>${E(s.club)} ${E(s.nat)}</small><td>${s.pos}<td>${E(s.age)}<td>${E(s.ovr)}/${E(s.pot)}<td>${eur(s.val)}<small>${eur(s.wage)}/sem</small><td>${s.prio}<td>${s.st}<td class="ob">${E(s.notes)}<td class="ac">${s.st!='Contratado'?`<button data-act="sign" data-i="${s.id}">+Plantel</button>`:''}<button data-act="edit" data-k="scout" data-i="${s.id}">✎</button><button data-act="del" data-k="scout" data-i="${s.id}">✕</button></tr>`).join('')||'<tr><td colspan="9" class="em">Sem alvos de scouting</td></tr>'}</table></div>`},
+scout:c=>{const O={Alta:0,'Média':1,Baixa:2},f=Q.scout,q=f.q.toLowerCase(),L=c.scout.filter(s=>(!q||(s.name+' '+s.club+' '+s.nat).toLowerCase().includes(q))&&(!f.pos||s.pos==f.pos)&&(!f.st||s.st==f.st)).sort((a,b)=>O[a.prio]-O[b.prio]);
+return `<div class="tl"><h2>Scouting (${L.length})</h2><button class="p" data-act="add" data-k="scout">+ Alvo</button></div>${fbar('scout')}<div class="sc"><table><tr><th>Nome<th>Pos<th>Idade<th>Atual/Pot<th>Valor / Salário<th>Prioridade<th>Estado<th>Notas<th></tr>${L.map(s=>`<tr><td><b>${E(s.name)}</b><small>${E(s.club)} ${E(s.nat)}</small><td>${s.pos}<td>${E(s.age)}<td>${E(s.ovr)}/${E(s.pot)}<td>${eur(s.val)}<small>${eur(s.wage)}/sem</small><td>${s.prio}<td>${s.st}<td class="ob">${E(s.notes)}<td class="ac">${s.st!='Contratado'?`<button data-act="sign" data-i="${s.id}">+Plantel</button>`:''}<button data-act="edit" data-k="scout" data-i="${s.id}">✎</button><button data-act="del" data-k="scout" data-i="${s.id}">✕</button></tr>`).join('')||'<tr><td colspan="9" class="em">Sem alvos de scouting</td></tr>'}</table></div>`},
 staff:c=>{const L=c.staff,tot=L.reduce((s,x)=>s+(+x.wage||0),0);
 return `<div class="tl"><h2>Staff (${L.length})</h2><button class="p" data-act="add" data-k="staff">+ Membro</button></div><div class="cards"><div class="cd"><span>Elementos</span><b>${L.length}</b></div><div class="cd"><span>Custo/semana</span><b>${eur(tot)}</b></div><div class="cd"><span>Avaliação média</span><b>${L.length?(L.reduce((s,x)=>s+(+x.rate||0),0)/L.length).toFixed(1):'—'}</b></div></div><div class="sc"><table><tr><th>Nome<th>Função<th>Idade<th>Aval.<th>Salário/sem<th>Contrato<th>Notas<th></tr>${L.map(x=>`<tr><td><b>${E(x.name)}</b><small>${E(x.nat)}</small><td>${E(x.role)}<td>${E(x.age)}<td>${E(x.rate)}<td>${eur(x.wage)}<td>${E(x.exp)}<td class="ob">${E(x.notes)}<td class="ac"><button data-act="edit" data-k="staff" data-i="${x.id}">✎</button><button data-act="del" data-k="staff" data-i="${x.id}">✕</button></tr>`).join('')||'<tr><td colspan="8" class="em">Sem staff</td></tr>'}</table></div>`},
 stats:c=>{const by=(a,b)=>(a.date||'').localeCompare(b.date||''),M=[...c.matches].sort(by),n=r=>M.filter(m=>res(m)==r).length,t=M.length||1;
@@ -125,7 +131,7 @@ return `<div class="tl"><h2>Gráficos</h2><span style="color:var(--mut)">Pontos:
 pers:c=>`<div class="tl"><h2>Área pessoal</h2></div><div class="two"><div><label>Nome do treinador<input data-pers="mgr" value="${E(c.pers.mgr)}"></label><div class="tl" style="margin-top:16px"><h3>Objetivos</h3><button class="p" data-act="addGoal">+ Objetivo</button></div>${c.pers.goals.map(g=>`<div class="gl"><input type="checkbox" data-goal="${g.id}" ${g.done?'checked':''}><span style="flex:1;${g.done?'text-decoration:line-through;color:var(--mut)':''}">${E(g.t)}</span><button class="g" data-act="delGoal" data-i="${g.id}">✕</button></div>`).join('')||'<p class="em">Sem objetivos</p>'}</div><label>Notas da carreira<textarea data-pers="notes" rows="14">${E(c.pers.notes)}</textarea></label></div>`};
 
 function render(){save();const c=club();
-$('#app').innerHTML=`<header><h1>⚽ FM Manager${c?' · '+E(c.name)+' <small style="font:500 13px Inter;color:var(--mut)">'+E(c.season)+'</small>':''}</h1><div class="hr">${S.clubs.length?`<select data-club>${S.clubs.map(x=>`<option value="${x.id}" ${x.id==S.active?'selected':''}>${E(x.name)}</option>`).join('')}</select>`:''}<button class="p" data-act="addClub">+ Clube</button>${c?'<button class="g" data-act="delClub">Remover clube</button>':''}<button class="g" data-act="bak">Backup</button></div></header>`+(c?`<nav>${TABS.map(([k,l])=>`<button class="tb ${tab==k?'on':''}" data-act="tab" data-k="${k}">${l}</button>`).join('')}</nav><main>${V[tab](c)}</main>`:'<main><p class="em">Ainda sem carreiras. Adiciona o teu primeiro clube para começar.</p></main>')}
+$('#app').innerHTML=`<header><h1>⚽ FM Manager${c?' · '+E(c.name)+' <small style="font:500 13px Inter;color:var(--mut)">'+E(c.season)+'</small>':''}</h1><div class="hr">${S.clubs.length?`<select data-club>${S.clubs.map(x=>`<option value="${x.id}" ${x.id==S.active?'selected':''}>${E(x.name)}</option>`).join('')}</select>`:''}<button class="p" data-act="addClub">+ Clube</button>${c?'<button class="g" data-act="delClub">Remover clube</button>':''}<button class="g" id="cl" data-act="cloud">${cloudLabel()}</button><button class="g" data-act="bak">Backup</button></div></header>${banner(c)}`+(c?`<nav>${TABS.map(([k,l])=>`<button class="tb ${tab==k?'on':''}" data-act="tab" data-k="${k}">${l}</button>`).join('')}</nav><main>${V[tab](c)}</main>`:'<main><p class="em">Ainda sem carreiras. Adiciona o teu primeiro clube para começar.</p></main>')}
 
 const A={
 tab:d=>{tab=d.k;render()},
@@ -141,6 +147,50 @@ addGoal:()=>modal('Novo objetivo',[['t','Objetivo','text',1]],{},o=>{if(o.t.trim
 delGoal:d=>{const c=club();c.pers.goals=c.pers.goals.filter(g=>g.id!=d.i);render()},
 bak:()=>modal('Backup dos dados',[['data','Copia este texto para guardar. Para restaurar, cola um backup e confirma.','area',1]],{data:JSON.stringify(S)},o=>{try{const n=JSON.parse(o.data);if(n&&n.clubs)S=n}catch(e){}})};
 
+/* ===== Ronda 1: filtros, alertas, estado ===== */
+const SST=['Observar','Contactar','Negociar','Contratado','Descartado'];
+const Q={players:{q:'',pos:'',st:'',ct:false},scout:{q:'',pos:'',st:''}},SO={k:'pos',d:1};
+const STC={Titular:'#0f9d58','Rotação':'#6b7a73','À venda':'#c99a14',Emprestado:'#3b82f6',Lesionado:'#d64545'};
+const stb=s=>`<span class="bd2" style="background:${STC[s]||'#6b7a73'}">${s||'—'}</span>`;
+const expiring=(c,p)=>{const m=String(p.exp||'').match(/\d{4}/),s=parseInt(c.season);return !!(m&&s&&+m[0]<=s+1)};
+const banner=c=>{if(!c)return '';const L=c.players.filter(p=>expiring(c,p));return L.length?`<div class="bn" data-act="ending">⚠ ${L.length} contrato${L.length>1?'s':''} a terminar: ${L.slice(0,4).map(p=>E(p.name)).join(', ')}${L.length>4?'…':''}</div>`:''};
+const fbar=k=>{const f=Q[k],o=(a,v)=>a.map(x=>`<option ${v==x?'selected':''}>${x}</option>`).join('');
+return `<div class="fb"><input placeholder="Pesquisar…" data-qf="${k}:q" value="${E(f.q)}"><select data-qf="${k}:pos"><option value="">Todas as posições</option>${o(POS,f.pos)}</select><select data-qf="${k}:st"><option value="">Todos os estados</option>${o(k=='players'?ST:SST,f.st)}</select>${k=='players'?`<label class="ck"><input type="checkbox" data-qf="players:ct" ${f.ct?'checked':''}>A terminar contrato</label>`:''}</div>`};
+const COLS=[['name','Nome'],['pos','Pos'],['age','Idade'],['ovr','Atual/Pot'],['st','Estado'],['wage','Salário/sem'],['exp','Contrato'],['val','Valor']];
+const pList=c=>{const f=Q.players,q=f.q.toLowerCase();return c.players.filter(p=>(!q||(p.name+' '+p.nat).toLowerCase().includes(q))&&(!f.pos||p.pos==f.pos)&&(!f.st||p.st==f.st)&&(!f.ct||expiring(c,p))).sort((a,b)=>{const k=SO.k,x=k=='pos'?POS.indexOf(a.pos):a[k],y=k=='pos'?POS.indexOf(b.pos):b[k];return((isNaN(x)||isNaN(y))?String(x??'').localeCompare(String(y??'')):x-y)*SO.d})};
+V.players=c=>{const L=pList(c);return `<div class="tl"><h2>Plantel (${L.length}/${c.players.length})</h2><button class="p" data-act="add" data-k="players">+ Jogador</button></div>${fbar('players')}<div class="sc"><table><tr>${COLS.map(([k,l])=>`<th data-act="sort" data-k="${k}">${l}${SO.k==k?(SO.d>0?' ▲':' ▼'):''}</th>`).join('')}<th>Obs</th><th></th></tr>${L.map(p=>`<tr><td><b>${E(p.name)}</b><small>${E(p.nat)}</small></td><td>${p.pos}</td><td>${E(p.age)}</td><td>${E(p.ovr)}/${E(p.pot)}</td><td>${stb(p.st)}</td><td>${eur(p.wage)}</td><td class="${expiring(c,p)?'wn':''}">${E(p.exp)}<small>${p.clause?'Cláusula '+eur(p.clause):''}</small></td><td>${eur(p.val)}</td><td class="ob">${E(p.notes)}</td><td class="ac"><button data-act="edit" data-k="players" data-i="${p.id}">✎</button><button data-act="del" data-k="players" data-i="${p.id}">✕</button></td></tr>`).join('')||'<tr><td colspan="10" class="em">Nenhum jogador</td></tr>'}</table></div>`};
+A.sort=d=>{SO.d=SO.k==d.k?-SO.d:1;SO.k=d.k;render()};
+A.ending=()=>{tab='players';Q.players.ct=true;render()};
+const qh=e=>{const t=e.target,v=t.dataset&&t.dataset.qf;if(!v)return;const[k,f]=v.split(':');Q[k][f]=t.type=='checkbox'?t.checked:t.value;render();const n=document.querySelector('[data-qf="'+v+'"]');if(n&&t.type=='text'){n.focus();n.setSelectionRange(n.value.length,n.value.length)}};
+document.addEventListener('input',qh);document.addEventListener('change',qh);
+/* ===== Backup em ficheiro ===== */
+A.bak=()=>modal('Backup em ficheiro',[],{},()=>{},`<button class="p" data-act="dl">Descarregar .json</button><br><br><label>Restaurar de ficheiro (substitui os dados atuais)<input type="file" accept=".json,application/json" data-file></label>`);
+A.dl=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='fm-manager-backup-'+today+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e3)};
+document.addEventListener('change',e=>{const t=e.target;if(!t.hasAttribute('data-file')||!t.files[0])return;const r=new FileReader();r.onload=()=>{try{const n=JSON.parse(r.result);if(!n.clubs)throw 0;try{localStorage.setItem('fm_prev',JSON.stringify(S))}catch(x){}S=n;lastJ='';const o=document.querySelector('.ov');if(o)o.remove();render()}catch(x){t.insertAdjacentHTML('afterend','<p class="neg">Ficheiro inválido</p>')}};r.readAsText(t.files[0])});
+/* ===== Supabase (nuvem) ===== */
+let sb=null,user=null,cloudMsg='',pushT=null;
+const CFG=()=>{try{return JSON.parse(localStorage.getItem('fm_sb'))||{}}catch(e){return{}}};
+const cloudLabel=()=>!user?'☁ Nuvem':(!cloudMsg||/^Sincron/.test(cloudMsg))?'☁ ✓':'☁ ⚠';
+const upd=()=>{const b=$('#cl');if(b)b.textContent=cloudLabel()};
+const loadLib=()=>new Promise((ok,no)=>{if(window.supabase)return ok();const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js';s.onload=ok;s.onerror=()=>no(new Error('Não foi possível carregar o Supabase'));document.head.appendChild(s)});
+function cloudPush(){if(!sb||!user)return;clearTimeout(pushT);pushT=setTimeout(push,800)}
+async function push(){try{const{error}=await sb.from('fm_data').upsert({user_id:user.id,data:S,updated_at:new Date(S.t||Date.now()).toISOString()});cloudMsg=error?error.message:'Sincronizado às '+new Date().toLocaleTimeString('pt-PT')}catch(e){cloudMsg=e.message}upd()}
+async function pull(){const{data,error}=await sb.from('fm_data').select('data,updated_at').eq('user_id',user.id).maybeSingle();if(error){cloudMsg=error.message;return}
+const ct=data?Date.parse(data.updated_at):0;
+if(data&&data.data&&data.data.clubs&&(!S.clubs.length||ct>(S.t||0))){try{localStorage.setItem('fm_prev',JSON.stringify(S))}catch(e){}S=data.data;S.t=ct;lastJ=JSON.stringify({...S,t:0});try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+else if(S.clubs.length)await push();
+if(!cloudMsg||!/^(Sincron)/.test(cloudMsg))cloudMsg='Sincronizado'}
+async function sbInit(){const c=CFG();if(!c.url||!c.key)return;try{await loadLib();sb=supabase.createClient(c.url,c.key);const{data}=await sb.auth.getSession();user=data.session?data.session.user:null;if(user)await pull()}catch(e){cloudMsg=e.message}render()}
+async function auth(o,up){const cfg={url:(o.url||'').trim(),key:(o.key||'').trim()};
+if(!cfg.url||!cfg.key||!o.email||!o.pw){cloudMsg='Preenche todos os campos';return A.cloud()}
+try{localStorage.setItem('fm_sb',JSON.stringify(cfg))}catch(e){}
+try{await loadLib();sb=supabase.createClient(cfg.url,cfg.key);const r=up?await sb.auth.signUp({email:o.email,password:o.pw}):await sb.auth.signInWithPassword({email:o.email,password:o.pw});if(r.error)throw r.error;
+if(r.data.session){user=r.data.user;cloudMsg='';await pull()}else cloudMsg=up?'Conta criada. Confirma o email (se pedido) e depois clica Confirmar para entrar.':'Sem sessão'}catch(e){cloudMsg=e.message}
+render();A.cloud()}
+A.cloud=()=>modal('Nuvem (Supabase)',user?[]:[['url','Project URL','text',1],['key','Anon key','text',1],['email','Email','email'],['pw','Palavra-passe','password']],user?{}:{url:CFG().url,key:CFG().key},o=>{if(!user)auth(o,false)},user?`Ligado como <b>${E(user.email)}</b>.<br>${E(cloudMsg)}<br><br><button data-act="sync">Sincronizar agora</button> <button data-act="logout">Sair</button>`:`${E(cloudMsg)}<br><button data-act="signup">Criar conta</button> <small>(Confirmar = Entrar)</small>`);
+A.signup=()=>{const g=n=>document.querySelector('.ov [name='+n+']').value,o={url:g('url'),key:g('key'),email:g('email'),pw:g('pw')};document.querySelector('.ov').remove();auth(o,true)};
+A.logout=async()=>{if(sb)await sb.auth.signOut();user=null;cloudMsg='';const o=document.querySelector('.ov');if(o)o.remove();render()};
+A.sync=async()=>{const o=document.querySelector('.ov');if(o)o.remove();await pull();render()};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b&&A[b.dataset.act])A[b.dataset.act](b.dataset)});
 document.addEventListener('change',e=>{const t=e.target,d=t.dataset,c=club();
 if('club' in d){S.active=t.value;render()}
@@ -149,5 +199,5 @@ else if('sel' in d){const f=c.forms.find(x=>x.id==c.fid)||c.forms[0];if(t.value)
 else if('bud' in d){c.bud[d.bud]=+t.value;render()}
 else if('goal' in d){c.pers.goals.find(g=>g.id==d.goal).done=t.checked;render()}});
 document.addEventListener('input',e=>{const d=e.target.dataset;if('pers' in d){club().pers[d.pers]=e.target.value;save()}});
-render();
+render();sbInit();
 </script></body></html>
